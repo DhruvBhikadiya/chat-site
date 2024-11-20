@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" href="https://seeklogo.com/images/C/chatcoin-chat-logo-D655A30A39-seeklogo.com.png">
+    <title>Chat-Site Registration</title>
+    <style>
+        body {
+            margin: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: #f0f0f0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+
+        .registration-form {
+            background-color: white;
+            padding: 2rem;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            max-width: 400px;
+            width: 100%;
+        }
+
+        .registration-form h2 {
+            margin-bottom: 1rem;
+            color: #346f9c;
+        }
+
+        .registration-form input,
+        .registration-form select {
+            width: 100%;
+            padding: 0.5rem;
+            margin-bottom: 1rem;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+
+        .registration-form input[type="file"] {
+            padding: 0.2rem;
+        }
+
+        .registration-form button {
+            background-color: #1C98F7;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 5px;
+            color: white;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+            width: 100%;
+        }
+
+        .registration-form button:hover {
+            background-color: #346f9c;
+        }
+    </style>
+</head>
+<body>
+    <div class="registration-form">
+        <div>
+            <div style="display: flex; align-items: center; justify-content: center;">
+                <img style="margin-right: 10px;" src="https://seeklogo.com/images/C/chatcoin-chat-logo-D655A30A39-seeklogo.com.png" alt="" width="50px" height="50px">
+                <h2>Chat-Site</h2>
+            </div>
+            <h2>Login</h2>
+        </div>
+        <form action="/login" method="post" style="margin-top: 10px;" id="register-form">
+            <input type="email" id="email" name="email" placeholder="Email" required>
+            <input type="password" id="password" name="password" placeholder="Password" required>
+            <div style="display: flex; justify-content: center; margin-bottom: 15px;">
+                <a href="/registrationPage">Don't have an account</a>
+            </div>
+            <button type="submit">Login</button>
+        </form>
+    </div>
+</body>
+</html>

@@ -1,0 +1,1346 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://kit.fontawesome.com/c939d0e917.js"></script>
+    <link rel="icon" href="https://seeklogo.com/images/C/chatcoin-chat-logo-D655A30A39-seeklogo.com.png">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css"
+        integrity="sha512-h9FcoyWjHcOcmEVkxOfTLnmZFWIH0iZhZT1H2TbOq55xssQGEJHEaIm+PgoUaZbRvQTNTluNOEfb1ZRy6D3BOw=="
+        crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #e5ddd5;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+
+        .container {
+            display: flex;
+            width: 90%;
+            height: 90%;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .sidebar {
+            width: 30%;
+            background-color: #2a2f32;
+            color: white;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .sidebar-header {
+            padding: 20px;
+            background-color: #323739;
+        }
+
+        .contact-list {
+            flex-grow: 1;
+            overflow-y: auto;
+        }
+
+        .contact {
+            padding: 20px;
+            cursor: pointer;
+            border-bottom: 1px solid #404040;
+        }
+
+        .contact:hover {
+            background-color: #404040;
+        }
+
+        .chat-area {
+            width: 70%;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .chat-header {
+            padding: 20px;
+            background-color: #ededed;
+            border-bottom: 1px solid #ccc;
+        }
+
+        .chat-messages {
+            flex-grow: 1;
+            padding: 20px;
+            overflow-y: auto;
+            background-color: white;
+        }
+
+        .chat-input {
+            display: flex;
+            padding: 10px;
+            border-top: 1px solid #ccc;
+            background-color: #f0f0f0;
+        }
+
+        .chat-input input {
+            flex-grow: 1;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            margin-right: 10px;
+        }
+
+        .chat-input button {
+            padding: 10px 20px;
+            border: none;
+            background-color: #128c7e;
+            color: white;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        .chat-input button:hover {
+            background-color: #075e54;
+        }
+
+        .message {
+            margin-bottom: 20px;
+            max-width: 60%;
+        }
+
+        .message.outgoing {
+            margin-left: auto;
+            background-color: #dcf8c6;
+            padding: 10px;
+            border-radius: 10px;
+        }
+
+        .message.incoming {
+            align-self: flex-start;
+            background-color: #cfd2c6;
+            padding: 10px;
+            border-radius: 10px;
+        }
+
+        /* Modal styles */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0, 0, 0, 0.5);
+        }
+
+        .modal-content {
+            background-color: white;
+            margin: auto;
+            margin-top: 10%;
+            border: 1px solid #888;
+            width: 80%;
+            max-width: 400px;
+            border-radius: 10px;
+            padding: 10px;
+        }
+
+        .close {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+        }
+
+        .close:hover,
+        .close:focus {
+            color: black;
+            text-decoration: none;
+            cursor: pointer;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-body {
+            margin-top: 20px;
+        }
+
+        .modal-body label {
+            display: block;
+            margin-bottom: 5px;
+        }
+
+        .modal-body input[type="text"],
+        .modal-body input[type="file"] {
+            width: 95%;
+            padding: 10px;
+            margin-bottom: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+
+        .modal-body button {
+            padding: 10px 20px;
+            border: none;
+            background-color: #128c7e;
+            color: white;
+            border-radius: 4px;
+            cursor: pointer;
+            width: 100%;
+        }
+
+        .modal-body button:hover {
+            background-color: #075e54;
+        }
+
+        #videoDiv {
+            display: none;
+            grid-gap: 10px;
+            height: 80%;
+            position: relative;
+            grid-template-columns: repeat(auto-fill, 300px);
+            grid-auto-rows: 300px;
+        }
+
+        video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border: 2px solid white;
+        }
+
+        .options {
+            padding: 1rem;
+            display: flex;
+            justify-content: space-evenly;
+        }
+
+        .options_button {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-color: red;
+            height: 50px;
+            border-radius: 50px;
+            color: white;
+            font-size: 1.2rem;
+            width: 50px;
+            margin: 0 0.5rem;
+            cursor: pointer;
+        }
+
+        .dropdown {
+            position: relative;
+            display: none;
+        }
+
+        /* Styling for the dropdown button */
+        .dropbtn {
+            background-color: #1C98F7;
+            color: white;
+            padding: 10px 20px;
+            font-size: 16px;
+            border: none;
+            cursor: pointer;
+        }
+
+        /* The container for the dropdown content */
+        .dropdown-content {
+            display: none;
+            position: absolute;
+            background-color: #f9f9f9;
+            min-width: 160px;
+            box-shadow: 0px 8px 16px 0px rgba(0, 0, 0, 0.2);
+            z-index: 1;
+        }
+
+        /* Style the links inside the dropdown */
+        .dropdown-content button {
+            color: black;
+            padding: 12px 16px;
+            text-decoration: none;
+            display: block;
+            width: 100%;
+        }
+
+        /* Change color of dropdown links on hover */
+        .dropdown-content button:hover {
+            background-color: #f1f1f1;
+        }
+
+        /* Show the dropdown content when hovering over the dropdown */
+        .dropdown:hover .dropdown-content {
+            display: block;
+            z-index: 99;
+        }
+
+        /* Change the background color of the dropdown button when the dropdown content is shown */
+        .dropdown:hover .dropbtn {
+            background-color: #2d4b61;
+            transition: 0.2s ease all;
+        }
+    </style>
+
+    <script defer src="https://dhruvbhikadiya.github.io/custome-script/custome-script.js"></script>
+</head>
+
+<body>
+    <div class="container">
+        <div class="sidebar">
+            <div style="display: grid; align-items: center; justify-content: space-between;" class="sidebar-header">
+                <div style="display: flex; align-items: center;">
+                    <img style="margin-right: 10px;"
+                        src="https://seeklogo.com/images/C/chatcoin-chat-logo-D655A30A39-seeklogo.com.png" alt=""
+                        width="50px" height="50px">
+                    <h2>Contacts</h2>
+                </div>
+                <div>
+                    <button id="createGroup"
+                        style="background-color: transparent; box-shadow: none; border: 0; color: green; border: 2px solid green; padding: 7px 15px; border-radius: 50px;font-size: 18px; cursor: pointer;">Create
+                        a group</button>
+                </div>
+            </div>
+            <div class="contact-list">
+
+                <% for(c of User.currentUser) { %>
+                    <input id="currentUserId" type="hidden" value="<%= c.id %>">
+                    <% } %>
+
+                        <% for(u of User.allUser) { %>
+                            <div style="display: flex; align-items: center;" class="contact"
+                                onclick="connect({id:`<%= u.id%>`,name:`<%= u.name %>`})">
+                                <img style="margin-right: 15px; border-radius: 50%; object-fit: cover;"
+                                    src="<%= u.image %>" alt="user" width="50px" height="50px">
+                                <div class="contact-name">
+                                    <%= u.id==User.currentUser[0].id ? 'you' : u.name %>
+                                </div>
+                            </div>
+                            <% } %>
+
+                                <% for(g of User.group) { %>
+                                    <% for(c of User.currentUser) { %>
+                                        <% if(c.id==g.aid) { %>
+                                            <div style="display: flex; align-items: center;" class="contact"
+                                                onclick="gconnect({id:`<%= g.gid%>`,name:`<%= g.name %>`})">
+                                                <img style="margin-right: 15px; border-radius: 50%; object-fit: cover;"
+                                                    src="<%= g.image %>" alt="user" width="50px" height="50px">
+                                                <div class="contact-name">
+                                                    <%= g.name %>
+                                                </div>
+                                            </div>
+                                            <% } else { %>
+                                                <% for(id of g.uid) { %>
+                                                    <% if(id==c.id) { %>
+                                                        <div style="display: flex; align-items: center;" class="contact"
+                                                            onclick="gconnect({id:`<%= g.gid%>`,name:`<%= g.name %>`})">
+                                                            <img style="margin-right: 15px; border-radius: 50%; object-fit: cover;"
+                                                                src="<%= g.image %>" alt="user" width="50px"
+                                                                height="50px">
+                                                            <div class="contact-name">
+                                                                <%= g.name %>
+                                                            </div>
+                                                        </div>
+                                                        <% } %>
+                                                            <% } %>
+                                                                <% } %>
+                                                                    <% } %>
+                                                                        <% } %>
+            </div>
+        </div>
+        <div class="chat-area">
+            <div class="chat-header" style="display: flex; align-items: center; justify-content: space-between;">
+                <div id="location" class="dropdown">
+                    <button class="dropbtn">Send location</button>
+                    <div class="dropdown-content">
+                        <button id="liveLocation">Send live location</button>
+                        <button id="currentLocation">Send current location</button>
+                    </div>
+                </div>
+                <div>
+                    <h2 id="chat-header-title">Chat-Site</h2>
+                </div>
+                <div id="calling-features" style="display: none;">
+                    <button id="video-call" class="start-video-call" style="border: 0; cursor: pointer;">
+                        <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQYr-3LfrzDKVzc1EeWC5HxhRA6JklxN0Icz9dRwfIkifRw3Rnt"
+                            alt="video-call" width="50px" height="50px" style="border-radius: 50%;">
+                    </button>
+                    <button id="voice-call" class="start-voice-call" style="border: 0; cursor: pointer;">
+                        <img src="../image/call.png" alt="call" width="50px" height="50px"
+                            style="border-radius: 50%; object-fit: cover;">
+                    </button>
+                </div>
+            </div>
+            <div class="chat-messages" id="chat-messages"></div>
+            <div id="input-area" class="chat-input" style="display: none;">
+                <i style="margin-right: 10px; cursor: pointer; font-size: 25px;" class="fa-solid fa-paperclip"
+                    id="file-upload-icon"></i>
+                <input type="file" id="file-input" style="display: none;">
+                <input type="text" id="message-input" placeholder="Type a message">
+                <button id="send-button">Send</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- The Modal -->
+    <div id="myModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Create a Group</h2>
+                <span class="close">&times;</span>
+            </div>
+            <div class="modal-body">
+                <% var aid=User.currentUser[0].id %>
+                    <form action="/createGroup/<%= aid %>" method="post" enctype="multipart/form-data"
+                        id="createGroupForm">
+                        <label for="groupName">Group Name:</label>
+                        <input placeholder="Please enter group name" type="text" id="groupName" name="name" required>
+
+                        <label for="groupImage">Group Image:</label>
+                        <input type="file" id="groupImage" name="image">
+
+                        <div>
+                            <% var filteredUsers=User.allUser.filter(user=> user.id !== User.currentUser[0].id); %>
+                                <h4>Select users</h4>
+                                <% filteredUsers.forEach(u=> { %>
+                                    <div style="display: flex; align-items: center; justify-content: space-between;">
+                                        <div style="display: flex; align-items: center;">
+                                            <img src="<%= u.image %>" alt="user" width="50px" height="50px"
+                                                style="margin-right: 10px; border-radius: 50%; object-fit: cover;">
+                                            <div class="contact-name">
+                                                <%= u.name %>
+                                            </div>
+                                        </div>
+                                        <div>
+                                            <input style="width: 20px; height: 20px;" type="checkbox" name="uid"
+                                                value="<%= u.id %>">
+                                        </div>
+                                    </div>
+                                    <hr />
+                                    <% }); %>
+                        </div>
+
+                        <button type="submit">Create Group</button>
+                    </form>
+
+            </div>
+        </div>
+    </div>
+
+    <!-- Video Call Model -->
+    <div id="videoCall" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Incoming Video call</h2>
+            </div>
+            <div class="modal-body" style="display: flex; justify-content: space-between;">
+                <button id="reject"
+                    style="border-radius: 10px; background-color: red; color: white; margin-right: 10px; font-size: 18px; font-weight: 500;">Reject</button>
+                <button id="accept"
+                    style="border-radius: 10px; background-color: green; color: white; font-size: 18px; font-weight: 500;">Accept</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Voice Call Modal -->
+    <div id="voiceCall" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Incoming voice call</h2>
+            </div>
+            <div class="modal-body" style="display: flex; justify-content: space-between;">
+                <button id="rejectVoice"
+                    style="border-radius: 10px; background-color: red; color: white; margin-right: 10px; font-size: 18px; font-weight: 500;">Reject</button>
+                <button id="acceptVoice"
+                    style="border-radius: 10px; background-color: green; color: white; font-size: 18px; font-weight: 500;">Accept</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Video Modal -->
+    <div id="videoModal" class="modal">
+        <div class="modal-content" style="padding: 0;">
+            <div class="video-modal-body" style="width: 100%; height: 100%; position: relative;">
+                <div id="remoteStream"
+                    style="width: 80%; height: 90%; margin: auto; margin-top: 20px; border-radius: 10px; display: flex; flex-wrap: wrap;">
+                </div>
+                <div id="localStream"
+                    style="width: 100px; height: 100px; position: absolute; top: 0; border-radius: 10%; margin-left: 50px; margin-top: 15px;">
+                </div>
+                <div class="options">
+                    <div id="stopVideo" class="options_button">
+                        <i class="fa fa-video-camera"></i>
+                    </div>
+                    <div id="muteButton" class="options_button">
+                        <i class="fa fa-microphone"></i>
+                    </div>
+                    <div id="disconnect" class="options_button background_red">
+                        <i class="fa fa-phone"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="voiceModal" class="modal">
+        <div class="modal-content" style="padding: 0;">
+            <div class="video-modal-body" style="width: 100%; height: 100%; position: relative;">
+                <div id="localAudio"></div>
+                <div id="remoteAudio"></div>
+                <div class="options">
+                    <div id="voiceMute" class="options_button">
+                        <i class="fa fa-microphone"></i>
+                    </div>
+                    <div id="voiceDisconnect" class="options_button background_red">
+                        <i class="fa fa-phone"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <!-- LEAFLET -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"
+        integrity="sha512-puJW3E/qXDqYp9IfhAI54BJEaWIfloJ7JWs7OeD5i6ruC9JZL1gERT1wjtwXFlh7CjE7ZJ+/vcRZRkIYIb6p4g=="
+        crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <!-- PEERJS -->
+    <script src="https://unpkg.com/peerjs@1.3.1/dist/peerjs.min.js"></script>
+</body>
+
+<script>
+    // Get the modal
+    var modal = document.getElementById("myModal");
+
+    var btn = document.getElementById("createGroup");
+
+    var span = document.getElementsByClassName("close")[0];
+
+    btn.onclick = function () {
+        modal.style.display = "block";
+        modal.style.zIndex = '99';
+    }
+
+    span.onclick = function () {
+        modal.style.display = "none";
+    }
+
+    window.onclick = function (event) {
+        if (event.target == modal) {
+            modal.style.display = "none";
+        }
+    }
+
+</script>
+
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const socket = io();
+        var peer = new Peer();
+
+        const chatMessages = document.getElementById('chat-messages');
+        const messageInput = document.getElementById('message-input');
+        const sendButton = document.getElementById('send-button');
+        let currentUserId = document.getElementById('currentUserId').value;
+        let contactName = document.getElementsByClassName('contact-name').value;
+        let fileInput = document.getElementById('file-input');
+        let fileUploadIcon = document.getElementById('file-upload-icon');
+        let callingFeatures = document.getElementById('calling-features');
+        let inputArea = document.getElementById('input-area');
+
+        let videoCall = document.getElementById('video-call');
+        let voiceCall = document.getElementById('voice-call');
+        let videoGrid = document.getElementById('videoModal');
+        let voiceGrid = document.getElementById('voiceModal');
+        let localVideo = document.getElementById('localStream');
+        let remoteVideo = document.getElementById('remoteStream');
+
+        const muteButton = document.querySelector("#muteButton");
+        const stopVideo = document.querySelector("#stopVideo");
+        const disconnectBtn = document.querySelector("#disconnect");
+
+        const voiceMute = document.getElementById('voiceMute');
+        const voiceDisconnect = document.getElementById('voiceDisconnect');
+        const localAudio = document.getElementById('localAudio');
+        const remoteAudio = document.getElementById('remoteAudio');
+
+        const location = document.getElementById('location');
+        const livelocation = document.getElementById('liveLocation')
+        const currentlocation = document.getElementById('currentLocation')
+
+        let isGroupChat = false;
+        var currentChatId = null;
+
+        var localStream;
+        var voiceLocalStream;
+
+        let callType = null;
+
+        var peerId;
+
+        var isAccepted;
+
+        const displayedStreams = {};
+
+        // VIDEO CALLING
+        peer.on('open', (id) => {
+            console.log('Peer connection open with ID :- ', id)
+            peerId = id;
+            const peerdata = {
+                peerId: id,
+                userId: currentUserId
+            }
+            socket.emit('newUser', (peerdata));
+        });
+
+        // FILE INPUT
+        fileInput.addEventListener('change', () => {
+            const file = event.target.files[0];
+            if (file) {
+                var fileType = file.type;
+                const formData = new FormData();
+                formData.append('file', file);
+
+                fetch('/upload', {
+                    method: 'POST',
+                    body: formData
+                })
+                    .then(response => response.json())
+                    .then(data => {
+                        const chatMessages = document.getElementById('chat-messages');
+                        if (data.filePath) {
+                            const message = data.filePath;
+                            if (isGroupChat) {
+                                socket.emit('group_message', { currentUserId, currentChatId, message, fileType });
+
+                                addMessage(message, fileType, 'outgoing');
+                            }
+                            else {
+                                socket.emit('private_message', { currentUserId, currentChatId, message, fileType });
+
+                                addMessage(message, fileType, 'outgoing');
+                            }
+                        } else {
+                            alert('File upload failed');
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                    });
+            }
+        });
+
+        // PRIVATE CHAT CONNECT
+        window.connect = function (user) {
+            currentChatId = user.id;
+            isGroupChat = false;
+            if (currentUserId == currentChatId) {
+                document.getElementById('chat-header-title').innerText = 'you';
+            }
+            else {
+                document.getElementById('chat-header-title').innerText = user.name;
+            }
+            chatMessages.innerHTML = '';
+
+            socket.emit('join', { currentUserId, currentChatId });
+
+            socket.emit('get_old_chats', currentChatId, currentUserId, isGroupChat);
+
+            fileUploadIcon.addEventListener('click', () => {
+                fileInput.click();
+            });
+
+            callingFeatures.style.display = 'block';
+            inputArea.style.display = 'flex';
+            inputArea.style.alignItems = 'center';
+            location.style.display = 'inline-block';
+
+            livelocation.addEventListener('click', () => {
+                liveLocation(isGroupChat);
+            });
+
+            currentlocation.addEventListener('click', () => {
+                currentLocation(isGroupChat);
+            });
+
+            videoCall.addEventListener('click', async () => {
+                callType = 'video';
+
+                localStream = await navigator.mediaDevices.getUserMedia({
+                    video: true,
+                    audio: true
+                });
+
+                const data = {
+                    currentChatId,
+                    callType,
+                    isGroupChat
+                }
+
+                socket.emit('videoChatId', (data));
+
+                addVideoStream(localStream, 'localStream', callType, isGroupChat);
+            });
+
+            voiceCall.addEventListener('click', async () => {
+                callType = 'voice';
+
+                voiceLocalStream = await navigator.mediaDevices.getUserMedia({
+                    audio: true
+                });
+
+                const data = {
+                    currentChatId,
+                    callType,
+                    isGroupChat
+                }
+
+                socket.emit('voiceChatId', (data));
+
+                addVideoStream(voiceLocalStream, 'localStream', callType, isGroupChat);
+            });
+        };
+
+        // GROUP CHAT CONNECT
+        window.gconnect = function (user) {
+            currentChatId = user.id;
+            groupName = user.name;
+            isGroupChat = true;
+            document.getElementById('chat-header-title').innerText = groupName;
+
+            chatMessages.innerHTML = '';
+
+            socket.emit('join_group', { currentUserId, currentChatId, groupName });
+
+            socket.emit('get_old_chats', currentChatId, currentUserId, isGroupChat);
+
+            fileUploadIcon.addEventListener('click', () => {
+                fileInput.click();
+            });
+
+            callingFeatures.style.display = 'block';
+            inputArea.style.display = 'flex';
+            inputArea.style.alignItems = 'center';
+            location.style.display = 'inline-block';
+
+            livelocation.addEventListener('click', () => {
+                liveLocation(isGroupChat);
+            });
+
+            currentlocation.addEventListener('click', () => {
+                currentLocation(isGroupChat);
+            });
+
+            videoCall.addEventListener('click', async () => {
+                callType = 'video';
+
+                localStream = await navigator.mediaDevices.getUserMedia({
+                    video: true,
+                    audio: true
+                });
+
+                const data = {
+                    currentChatId,
+                    callType,
+                    isGroupChat
+                }
+
+                socket.emit('videoChatId', (data));
+
+                addVideoStream(localStream, 'localStream', callType, isGroupChat);
+            });
+
+            voiceCall.addEventListener('click', async () => {
+                callType = 'voice';
+
+                voiceLocalStream = await navigator.mediaDevices.getUserMedia({
+                    audio: true
+                });
+
+                const data = {
+                    currentChatId,
+                    callType,
+                    isGroupChat
+                }
+
+                socket.emit('voiceChatId', (data));
+
+                addVideoStream(voiceLocalStream, 'localStream', callType, isGroupChat);
+            });
+        };
+
+        // VIDEO CALL
+        socket.on('videoUserJoined', ({ pId, currentChatId, callType, isGroupChat }) => {
+            console.log('videoUserJoined');
+            if (currentUserId != currentChatId) {
+                console.log('Connecting to new user:', pId);
+                connectToNewUser(pId, localStream, callType, isGroupChat);
+            }
+        });
+
+        socket.on('group_video_user_joined', (data) => {
+            const { peerIds, currentChatId, callType, uid, isGroupChat } = data;
+            console.log('Connecting to new user:', peerIds);
+            connectToGroup(peerIds, localStream, callType, uid, isGroupChat);
+        });
+
+        socket.on('voiceUserJoined', ({ pId, currentChatId, callType, isGroupChat }) => {
+            console.log('voiceUserJoined');
+            if (currentUserId != currentChatId) {
+                console.log('Connecting to new user:', pId);
+                connectToNewUser(pId, voiceLocalStream, callType, isGroupChat);
+            }
+        });
+
+        socket.on('group_voice_user_joined', (data) => {
+            const { peerIds, currentChatId, callType, uid, isGroupChat } = data
+            console.log('Connecting to new user:', peerIds);
+            connectToGroup(peerIds, voiceLocalStream, callType, uid, isGroupChat);
+        });
+
+        peer.on('call', async (call) => {
+            console.log('Answering call');
+
+            if (!call.metadata.otherCall) {
+                if (call.metadata.callType === 'video') {
+                    document.getElementById('videoCall').style.display = 'block';
+                }
+                else if (call.metadata.callType === 'voice') {
+                    document.getElementById('voiceCall').style.display = 'block';
+                }
+            }
+
+            if (isAccepted) {
+                if (call.metadata.otherCall) {
+                    localStream = await navigator.mediaDevices.getUserMedia({
+                        video: true,
+                        audio: true
+                    });
+                    call.answer(localStream);
+                    call.on('stream', remoteAudioStream => {
+                        console.log('Receiving stream');
+                        addVideoStream(remoteAudioStream, 'remoteStream', call.metadata.callType, call.metadata.isGroupChat);
+                    });
+                }
+            }
+
+            document.getElementById('accept').addEventListener('click', async () => {
+
+                document.getElementById('videoCall').style.display = 'none';
+                localStream = await navigator.mediaDevices.getUserMedia({
+                    video: true,
+                    audio: true
+                });
+
+                if (call.metadata.isGroupChat) {
+                    isAccepted = true;
+
+                    console.log(call.metadata.peerIds, '--call.metadata.peerIds--');
+
+                    Object.keys(call.metadata.peerIds).forEach(key => {
+                        const keyNum = Number(key);
+
+                        console.log(keyNum);
+
+                        if (keyNum == currentUserId) {
+                            delete call.metadata.peerIds[key];
+                        }
+                    });
+
+                    console.log(call.metadata.peerIds, '--peerIds--');
+
+                    var callToOtherUsers;
+
+                    isGroupChat = true;
+
+                    var otherCall;
+
+                    Object.values(call.metadata.peerIds).forEach((v) => {
+                        otherCall = true;
+                        const callType = call.metadata.callType
+                        callToOtherUsers = peer.call(v, localStream, { metadata: { callType, isGroupChat, otherCall } });
+                        callToOtherUsers.on('stream', userStream => {
+                            console.log('receiving stream from :- ', v);
+                            addVideoStream(userStream, 'remoteStream', callType, isGroupChat);
+                        });
+                    });
+                }
+
+                call.answer(localStream);
+                addVideoStream(localStream, 'localStream', call.metadata.callType, call.metadata.isGroupChat);
+                call.on('stream', remoteAudioStream => {
+                    console.log('Receiving stream');
+                    addVideoStream(remoteAudioStream, 'remoteStream', call.metadata.callType, call.metadata.isGroupChat);
+                });
+            });
+
+            document.getElementById('reject').addEventListener('click', () => {
+                document.getElementById('videoCall').style.display = 'none';
+                const data = {
+                    currentChatId: currentChatId,
+                    currentUserId: currentUserId,
+                    isGroupChat: isGroupChat,
+                    callType: call.metadata.callType
+                }
+                socket.emit('rejectCall', (data));//pending
+            });
+
+            document.getElementById('acceptVoice').addEventListener('click', async () => {
+                document.getElementById('voiceCall').style.display = 'none';
+                voiceLocalStream = await navigator.mediaDevices.getUserMedia({
+                    audio: true
+                })
+                call.answer(voiceLocalStream);
+                addVideoStream(voiceLocalStream, 'localStream', call.metadata.callType, call.metadata.isGroupChat);
+                call.on('stream', remoteAudioStream => {
+                    addVideoStream(remoteAudioStream, 'remoteStream', call.metadata.callType, call.metadata.isGroupChat);
+                });
+            });
+
+            document.getElementById('rejectVoice').addEventListener('click', () => {
+                document.getElementById('voiceCall').style.display = 'none';
+                const data = {
+                    currentChatId: currentChatId,
+                    currentUserId: currentUserId,
+                    isGroupChat: isGroupChat,
+                    callType: call.metadata.callType
+                }
+                socket.emit('rejectCall', (data));//pending
+            });
+        });
+
+        const connectToGroup = (peerIds, stream, callType, uid, isGroupChat) => {
+
+            var call;
+
+            Object.keys(peerIds).forEach(key => {
+                const keyNum = Number(key);
+
+                console.log(keyNum);
+
+                if (!uid.includes(keyNum) || keyNum == currentUserId) {
+                    delete peerIds[key];
+                }
+            });
+
+            console.log(peerIds, '--peerIds--');
+
+            Object.values(peerIds).forEach((v) => {
+                call = peer.call(v, stream, { metadata: { callType, isGroupChat, peerIds } });
+                call.on('stream', userStream => {
+                    console.log('receiving stream from :- ', v);
+                    addVideoStream(userStream, 'remoteStream', callType, isGroupChat);
+                });
+            });
+        };
+
+        const connectToNewUser = (userId, stream, callType, isGroupChat) => {
+            const call = peer.call(userId, stream, { metadata: { callType, isGroupChat } });
+            call.on('stream', userStream => {
+                addVideoStream(userStream, 'remoteStream', callType, isGroupChat);
+            });
+        };
+
+        const addVideoStream = (stream, type, callType, isGroupChat) => {
+            const streamId = stream.id;
+
+            // Check if the stream has already been displayed
+            if (displayedStreams[streamId]) return;
+
+            displayedStreams[streamId] = true;
+
+            if (!isGroupChat) {
+                if (callType === 'video') {
+                    videoGrid.style.display = 'block';
+                    if (type === 'localStream') {
+                        var videoElement = document.createElement('video');
+                        videoElement.srcObject = stream;
+                        videoElement.muted = true; // Mute the local video to avoid feedback
+                        videoElement.addEventListener('loadedmetadata', () => {
+                            videoElement.play();
+                        });
+                        localVideo.appendChild(videoElement);
+                    } else if (type === 'remoteStream') {
+                        var videoElement = document.createElement('video');
+                        videoElement.srcObject = stream;
+                        videoElement.addEventListener('loadedmetadata', () => {
+                            videoElement.play();
+                        });
+                        remoteVideo.appendChild(videoElement);
+                    }
+                } else if (callType === 'voice') {
+                    voiceGrid.style.display = 'block';
+                    if (type === 'localStream') {
+                        var audioElement = document.createElement('audio');
+                        audioElement.srcObject = stream;
+                        audioElement.muted = true; // Mute the local audio to avoid feedback
+                        audioElement.addEventListener('loadedmetadata', () => {
+                            audioElement.play();
+                        });
+                        localAudio.appendChild(audioElement);
+                    } else {
+                        var audioElement = document.createElement('audio');
+                        audioElement.srcObject = stream;
+                        audioElement.addEventListener('loadedmetadata', () => {
+                            audioElement.play();
+                        });
+                        remoteAudio.appendChild(audioElement);
+                    }
+                }
+            } else {
+                if (callType === 'video') {
+                    videoGrid.style.display = 'block';
+                    var videoElement = document.createElement('video');
+                    videoElement.srcObject = stream;
+                    videoElement.addEventListener('loadedmetadata', () => {
+                        videoElement.play();
+                    });
+                    if (type === 'localStream') {
+                        localVideo.appendChild(videoElement);
+                    } else if (type === 'remoteStream') {
+                        remoteVideo.appendChild(videoElement);
+                    }
+                } else if (callType === 'voice') {
+                    voiceGrid.style.display = 'block';
+                    var audioElement = document.createElement('audio');
+                    audioElement.srcObject = stream;
+                    audioElement.addEventListener('loadedmetadata', () => {
+                        audioElement.play();
+                    });
+                    if (type === 'localStream') {
+                        localAudio.appendChild(audioElement);
+                    } else {
+                        remoteAudio.appendChild(audioElement);
+                    }
+                }
+            }
+        };
+
+        socket.on('userDisconnected', (callType) => {
+            // cancelAllPermissions(callType);
+            if (callType === 'video') {
+                videoGrid.style.display = 'none';
+                if (window.location === 'https://9ca8-2405-201-201c-58f4-f53c-3aa0-7d58-c1b3.ngrok-free.app/chat') {
+                    window.location.href = "https://9ca8-2405-201-201c-58f4-f53c-3aa0-7d58-c1b3.ngrok-free.app/chat";
+                }
+                else {
+                    window.location.href = 'http://localhost:8080/chat';
+                }
+            }
+            else {
+                voiceGrid.style.display = 'none';
+                if (window.location === 'https://9ca8-2405-201-201c-58f4-f53c-3aa0-7d58-c1b3.ngrok-free.app/chat') {
+                    window.location.href = "https://9ca8-2405-201-201c-58f4-f53c-3aa0-7d58-c1b3.ngrok-free.app/chat";
+                }
+                else {
+                    window.location.href = 'http://localhost:8080/chat';
+                }
+            }
+        });
+
+        socket.on('rejectCall', (callType) => {
+            console.log('hey');
+            // cancelAllPermissions(callType);
+            if (callType === 'video') {
+                videoGrid.style.display = 'none';
+                if (window.location === 'https://9ca8-2405-201-201c-58f4-f53c-3aa0-7d58-c1b3.ngrok-free.app/chat') {
+                    window.location.href = "https://9ca8-2405-201-201c-58f4-f53c-3aa0-7d58-c1b3.ngrok-free.app/chat";
+                }
+                else {
+                    window.location.href = 'http://localhost:8080/chat';
+                }
+            }
+            else {
+                voiceGrid.style.display = 'none';
+                if (window.location === 'https://9ca8-2405-201-201c-58f4-f53c-3aa0-7d58-c1b3.ngrok-free.app/chat') {
+                    window.location.href = "https://9ca8-2405-201-201c-58f4-f53c-3aa0-7d58-c1b3.ngrok-free.app/chat";
+                }
+                else {
+                    window.location.href = 'http://localhost:8080/chat';
+                }
+            }
+        });
+
+        const cancelAllPermissions = (callType) => {
+            if (callType === 'video') {
+                if (localStream) {
+                    localStream.getTracks().forEach(track => track.stop());
+                    localStream = null;
+                }
+            }
+            else {
+                if (voiceLocalStream) {
+                    voiceLocalStream.getTracks().forEach(track => track.stop());
+                    voiceLocalStream = null;
+                }
+            }
+        };
+
+        muteButton.addEventListener('click', () => {
+            if (localStream && localStream.getAudioTracks().length > 0) {
+                const enabled = localStream.getAudioTracks()[0].enabled;
+                if (enabled) {
+                    localStream.getAudioTracks()[0].enabled = false;
+                    muteButton.innerHTML = `<i class="fa fa-microphone-slash"></i>`
+                }
+                else {
+                    localStream.getAudioTracks()[0].enabled = true;
+                    muteButton.innerHTML = `<i class="fa fa-microphone"></i>`
+                }
+            } else {
+                console.error('No audio tracks available to mute/unmute.');
+            }
+        });
+
+        voiceMute.addEventListener('click', () => {
+            if (voiceLocalStream && voiceLocalStream.getAudioTracks().length > 0) {
+                const enabled = voiceLocalStream.getAudioTracks()[0].enabled;
+                if (enabled) {
+                    voiceLocalStream.getAudioTracks()[0].enabled = false;
+                    voiceMute.innerHTML = `<i class="fa fa-microphone-slash"></i>`;
+                } else {
+                    voiceLocalStream.getAudioTracks()[0].enabled = true;
+                    voiceMute.innerHTML = `<i class="fa fa-microphone"></i>`;
+                }
+            } else {
+                console.error('No audio tracks available to mute/unmute.');
+            }
+        });
+
+        stopVideo.addEventListener('click', () => {
+            const enabled = localStream.getVideoTracks()[0].enabled;
+            if (enabled) {
+                const video = localStream.getVideoTracks()[0];
+                console.log(video);
+                const stopVideo = localStream.getVideoTracks()[0].enabled = false;
+                console.log(stopVideo);
+                stopVideo.innerHTML = `<i class="fas fa-video-slash"></i>`;
+            }
+            else {
+                localStream.getVideoTracks()[0].enabled = true;
+                stopVideo.innerHTML = `<i class="fas fa-video"></i>`;
+            }
+        });
+
+        disconnectBtn.addEventListener("click", async () => {
+            document.querySelectorAll('#localStream video, #remoteStream video').forEach(video => video.remove());
+
+            localStream = null;
+
+            videoGrid.style.display = 'none';
+
+            // cancelAllPermissions('video');
+
+            const data = {
+                callType: 'video',
+                currentChatId: currentChatId,
+                currentUserId: currentUserId,
+                isGroupChat: isGroupChat
+            }
+
+            socket.emit("disconnectUser", (data));
+
+            console.log(window.location);
+
+            if (window.location === 'http://localhost:8080/chat') {
+                window.location.href = 'http://localhost:8080/chat';
+            }
+            else {
+                window.location.href = "https://9ca8-2405-201-201c-58f4-f53c-3aa0-7d58-c1b3.ngrok-free.app/chat";
+            }
+
+        });
+
+        voiceDisconnect.addEventListener("click", () => {
+            document.querySelectorAll('#localAudio audio, #remoteAudio audio').forEach(audio => audio.remove());
+            voiceGrid.style.display = 'none';
+
+            // cancelAllPermissions('audio');
+
+            const data = {
+                callType: 'audio',
+                currentChatId: currentChatId,
+                currentUserId: currentUserId,
+                isGroupChat: isGroupChat
+            }
+
+            socket.emit("disconnectUser", (data));
+
+            if (window.location === 'https://9ca8-2405-201-201c-58f4-f53c-3aa0-7d58-c1b3.ngrok-free.app/chat') {
+                window.location.href = "https://9ca8-2405-201-201c-58f4-f53c-3aa0-7d58-c1b3.ngrok-free.app/chat";
+            }
+            else {
+                window.location.href = 'http://localhost:8080/chat';
+            }
+        });
+
+        // SEND LIVE LOCATION
+        const liveLocation = (gc) => {
+            if (navigator.geolocation) {
+                var locationWatchId = navigator.geolocation.watchPosition((position) => {
+                    const { latitude, longitude } = position.coords;
+                    const message = latitude + "," + longitude;
+                    var fileType = 'location';
+                    if (gc) {
+                        socket.emit('group_message', { currentUserId, currentChatId, message, fileType });
+                    }
+                    else {
+                        socket.emit('private_message', { currentUserId, currentChatId, message, fileType });
+                    }
+
+                    addMessage(message, fileType, 'outgoing');
+
+                    if (locationWatchId) {
+                        navigator.geolocation.clearWatch(locationWatchId);
+                        locationWatchId = null;
+                    }
+                }, (e) => {
+                    console.log(e);
+                }, {
+                    enableHighAccuracy: true,
+                    timeout: 10000,
+                    maximumAge: 0
+                });
+            };
+        };
+
+        // SEND CURRENT LOCATION
+        const currentLocation = (gc) => {
+            if (navigator.geolocation) {
+                var cPosition = navigator.geolocation.getCurrentPosition((position) => {
+                    const { latitude, longitude } = position.coords;
+                    const message = latitude + "," + longitude;
+                    var fileType = 'location';
+                    if (gc) {
+                        socket.emit('group_message', { currentUserId, currentChatId, message, fileType });
+                    }
+                    else {
+                        socket.emit('private_message', { currentUserId, currentChatId, message, fileType });
+                    }
+
+                    addMessage(message, fileType, 'outgoing');
+
+                    if (cPosition) {
+                        navigator.geolocation.clearWatch(cPosition);
+                        cPosition = null;
+                    }
+                }, (e) => {
+                    console.log(e);
+                }, {
+                    enableHighAccuracy: true,
+                    timeout: 10000,
+                    maximumAge: 0
+                });
+            };
+        };
+
+        // GET OLD CHAT
+        socket.on('old_chat', (fromId, userId, messages) => {
+            messages.forEach(msg => {
+                if (msg.from_id == userId && msg.to_id == fromId) {
+                    addMessage(msg.message, msg.filetype, 'outgoing');
+                } else if (fromId !== userId && msg.from_id == fromId && msg.to_id == userId) {
+                    addMessage(msg.message, msg.filetype, 'incoming');
+                }
+            });
+        });
+
+        // GET OLD GROUP CHAT
+        socket.on('old_group_chat', (fromId, userId, messages) => {
+            messages.forEach(msg => {
+                if (msg.from_id == userId && msg.group_id == fromId) {
+                    addMessage(msg.message, msg.filetype, 'outgoing');
+                } else {
+                    addMessage(msg.message, msg.filetype, 'incoming');
+                }
+            });
+        });
+
+        // SEND MESSAGE
+        sendButton.addEventListener('click', () => {
+            const message = messageInput.value;
+            if (message && currentChatId) {
+                var fileType = 'message';
+                if (isGroupChat) {
+                    socket.emit('group_message', { currentUserId, currentChatId, message, fileType });
+                }
+                else {
+                    socket.emit('private_message', { currentUserId, currentChatId, message, fileType });
+                }
+                addMessage(message, fileType, 'outgoing');
+                messageInput.value = '';
+            }
+        });
+
+        // INCOMING PRIVATE MESSAGE
+        socket.on('private_message', (data) => {
+            if (data.currentUserId !== currentUserId) {
+                addMessage(data.message, data.fileType, 'incoming');
+            }
+        });
+
+        // INCOMING GROUP MESSAGE
+        socket.on('group_message', (data) => {
+            if (data.currentUserId !== currentUserId) {
+                addMessage(data.message, data.fileType, 'incoming');
+            }
+        });
+
+        // SHOW MESSAGES
+        function addMessage(message, fileType, type) {
+            const messageDiv = document.createElement('div');
+            messageDiv.classList.add('message', type);
+
+            if (fileType === 'image/avif' || fileType === 'image/jpeg' || fileType === 'image/jpg' || fileType === 'image/png') {
+                messageDiv.innerHTML = `
+                    <img style="object-fit:cover;" src="${message}" alt="image" width="100%" height="100%">`;
+            } else if (fileType === "video/x-matroska") {
+                messageDiv.innerHTML = `
+                    <video width="100%" height="100%" controls autoplay>
+                        <source src="${message}" type="${fileType}">
+                    </video>`;
+            } else if (fileType.substr(0, 5) === 'audio') {
+                messageDiv.innerHTML = `
+                    <audio style="width: 100%;" controls>
+                        <source src="${message}" type="${fileType}">
+                    </audio>`;
+            } else if (fileType === 'application/pdf') {
+                messageDiv.innerHTML = `
+                    <a href="${message}" target="_blank">View PDF</a>`;
+            } else if (fileType === 'text/javascript') {
+                messageDiv.innerHTML = `
+                    <a href="${message}" target="_blank">Download file</a>`;
+            } else if (fileType === "application/x-zip-compressed") {
+                messageDiv.innerHTML = `
+                    <a href="${message}" download>Download ZIP</a>`;
+            } else if (fileType === 'location') {
+                const [latitude, longitude] = message.split(',');
+                const mapDiv = document.createElement('div');
+                mapDiv.style.height = '200PX';
+                mapDiv.style.zIndex = '1';
+                messageDiv.appendChild(mapDiv);
+                chatMessages.appendChild(messageDiv);
+                chatMessages.scrollTop = chatMessages.scrollHeight;
+
+                const map = L.map(mapDiv).setView([latitude, longitude], 16);
+                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
+                L.marker([latitude, longitude]).addTo(map);
+            }
+            else {
+                messageDiv.textContent = message;
+            }
+
+            chatMessages.appendChild(messageDiv);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        };
+
+    });
+
+</script>
+
+</html>
